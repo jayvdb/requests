@@ -8,6 +8,6 @@ script:
   - python test_requests.py
 install:
   - python setup.py install
-  - pip install -e .[extra]
+  - pip install -e .[security]
 notifications:
   email: false
