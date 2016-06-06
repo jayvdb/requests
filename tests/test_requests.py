@@ -9,6 +9,8 @@ import os
 import pickle
 import collections
 import contextlib
+import re
+import warnings
 
 import io
 import requests
@@ -22,7 +24,7 @@ from requests.cookies import cookiejar_from_dict, morsel_to_cookie
 from requests.exceptions import (
     ConnectionError, ConnectTimeout, InvalidSchema, InvalidURL,
     MissingSchema, ReadTimeout, Timeout, RetryError, TooManyRedirects,
-    ProxyError)
+    ProxyError, SSLError)
 from requests.models import PreparedRequest
 from requests.structures import CaseInsensitiveDict
 from requests.sessions import SessionRedirectMixin
@@ -35,6 +37,19 @@ from .utils import override_environ
 # Requests to this URL should always fail with a connection timeout (nothing
 # listening on that port)
 TARPIT = 'http://10.255.255.1'
+
+try:
+    from ssl import SSLContext
+    del SSLContext
+    HAS_MODERN_SSL = True
+except ImportError:
+    HAS_MODERN_SSL = False
+
+try:
+    requests.pyopenssl
+    HAS_PYOPENSSL = True
+except AttributeError:
+    HAS_PYOPENSSL = False
 
 
 class TestRequests:
@@ -605,6 +620,115 @@ class TestRequests:
 
     def test_pyopenssl_redirect(self, httpbin_secure, httpbin_ca_bundle):
         requests.get(httpbin_secure('status', '301'), verify=httpbin_ca_bundle)
+
+    def test_verify(self):
+        """verify=True works with requests.get"""
+        with pytest.raises(SSLError):
+            requests.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        with pytest.raises(SSLError):
+            requests.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        with pytest.raises(SSLError):
+            requests.get('https://self-signed.badssl.com/')
+
+        with pytest.raises(SSLError):
+            requests.get('https://self-signed.badssl.com/')
+
+        session = requests.Session()
+
+        with pytest.raises(SSLError):
+            session.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        with pytest.raises(SSLError):
+            session.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        with pytest.raises(SSLError):
+            session.get('https://self-signed.badssl.com/')
+
+        with pytest.raises(SSLError):
+            session.get('https://self-signed.badssl.com/')
+
+    def test_verify_off(self):
+        """verify=False works with requests.get"""
+        if HAS_MODERN_SSL or HAS_PYOPENSSL:
+            warnings_expected = ('InsecureRequestWarning', )
+        else:
+            warnings_expected = ('InsecurePlatformWarning',
+                                 'InsecureRequestWarning')
+
+        with pytest.raises(SSLError):
+            requests.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        with pytest.raises(SSLError):
+            requests.get('https://self-signed.badssl.com/')
+
+        with warnings.catch_warnings(record=True) as warnings_log:
+            response = requests.get(
+                'https://testssl-expire-r2i2.disig.sk/index.en.html',
+                verify=False)
+        r = response.content
+        assert re.search(b'<title>.*</title>', r)
+
+        # Verify that the warning occurred
+        assert len(warnings_log) == len(warnings_expected)
+        assert warnings_log[0].category.__name__ == warnings_expected[0]
+        if len(warnings_expected) == 2:
+            assert warnings_log[1].category.__name__ == warnings_expected[1]
+
+        # Verify that a different website is verified after verify=False
+        with pytest.raises(SSLError):
+            requests.get('https://self-signed.badssl.com/')
+
+        # Verify that it now fails again in the same session
+        with pytest.raises(SSLError):
+            requests.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+    def test_verify_off_session(self):
+        """verify=False works with Session.get"""
+        if HAS_MODERN_SSL or HAS_PYOPENSSL:
+            warnings_expected = ('InsecureRequestWarning', )
+        else:
+            warnings_expected = ('InsecurePlatformWarning',
+                                 'InsecureRequestWarning')
+
+        session = requests.Session()
+
+        with pytest.raises(SSLError):
+            session.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        with pytest.raises(SSLError):
+            session.get('https://self-signed.badssl.com/')
+
+        with warnings.catch_warnings(record=True) as warnings_log:
+            response = session.get(
+                'https://testssl-expire-r2i2.disig.sk/index.en.html',
+                verify=False)
+        # Check that the content is sensible
+        r = response.content
+        assert re.search(b'<title>.*</title>', r)
+
+        assert len(warnings_log) == len(warnings_expected)
+        assert warnings_log[0].category.__name__ == warnings_expected[0]
+        if len(warnings_expected) == 2:
+            assert warnings_log[1].category.__name__ == warnings_expected[1]
+
+        # Verify that a different website is verified after verify=False
+        with pytest.raises(SSLError):
+            session.get('https://self-signed.badssl.com/')
+
+        # Verify that the same connection is used in the session
+        with warnings.catch_warnings(record=True) as warnings_log:
+            session.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
+
+        # And now InsecurePlatformWarning is not issued
+        assert len(warnings_log) == 1
+        assert warnings_log[0].category.__name__ == 'InsecureRequestWarning'
+
+        # Close the session and verify that it now fails again outside session
+        session.close()
+        with pytest.raises(SSLError):
+            requests.get('https://testssl-expire-r2i2.disig.sk/index.en.html')
 
     def test_urlencoded_get_query_multivalued_param(self, httpbin):
 
