@@ -53,6 +53,9 @@ script:
   - py.test -vv -k "test_unbundling or test_verify" --import-urllib3 --inject-openssl
   - rm -rf requests/packages/urllib3
   - pip install --upgrade urllib3
+  - py.test -vv "tests/test_requests.py::TestRequests::test_verify" "tests/test_requests.py::TestRequests::test_unbundling"
+  - py.test -vv "tests/test_requests.py::TestRequests::test_verify" "tests/test_requests.py::TestRequests::test_unbundling" --import-urllib3 --inject-openssl
+  - py.test -vv -k "test_unbundling" --import-urllib3 --inject-openssl
   - py.test -vv -k "test_unbundling or test_verify"
   - py.test -vv -k "test_unbundling or test_verify" --import-urllib3 --inject-openssl
   - git checkout requests/packages/urllib3
@@ -60,7 +63,11 @@ script:
   - rm -rf requests/packages/urllib3
   - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
   - py.test -vv
-  - py.test -vv -k "test_unbundling or test_verify"
+  - py.test -vv -k "test_unbundling"
+  - py.test -vv -k "test_unbundling" --import-urllib3 --inject-openssl
+  - py.test -vv -k "test_unbundling or test_verify" --import-urllib3 --inject-openssl
+  - py.test -vv "tests/test_requests.py::TestRequests::test_verify" "tests/test_requests.py::TestRequests::test_unbundling"
+  - py.test -vv "tests/test_requests.py::TestRequests::test_verify" "tests/test_requests.py::TestRequests::test_unbundling" --import-urllib3 --inject-openssl
   - py.test -vv --import-urllib3 --inject-openssl
 notifications:
   email: false
