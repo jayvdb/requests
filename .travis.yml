@@ -19,5 +19,9 @@ script:
   - rm -rf requests/packages/urllib3
   - pip install urllib3 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
   - py.test -vv
+  - git checkout requests/packages/urllib3
+  - pip install -e '.[security]'
+  - rm -rf requests/packages/urllib3
+  - py.test -vv
 notifications:
   email: false
