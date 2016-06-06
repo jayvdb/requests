@@ -16,5 +16,8 @@ matrix:
       sudo: required
 script:
   - py.test -vv
+  - rm -rf requests/packages/urllib3
+  - pip install urllib3 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
+  - py.test -vv
 notifications:
   email: false
