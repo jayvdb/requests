@@ -633,11 +633,7 @@ class TestRequests:
         if HAS_MODERN_SSL or HAS_PYOPENSSL:
             warnings_expected = tuple()
         else:
-            if HAS_SNI:
-                warnings_expected = ('InsecurePlatformWarning', )
-            else:
-                warnings_expected = ('SNIMissingWarning',
-                                     'InsecurePlatformWarning')
+            warnings_expected = ('InsecurePlatformWarning', )
 
         print('HAS_MODERN_SSL', HAS_MODERN_SSL)
         print('HAS_PYOPENSSL', HAS_PYOPENSSL)

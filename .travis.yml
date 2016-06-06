@@ -18,12 +18,36 @@ matrix:
       env: DIST=trusty
       dist: trusty
       sudo: required
+  include:
+    - language: python
+      python: '2.7_with_system_site_packages'
+      dist: trusty
+      sudo: required
+      addons:
+        apt:
+          sources:
+            - debian-sid
+          packages:
+            - python-ipaddr
+            - python-openssl=0.13-2ubuntu6
+            - python-requests
+            - python-six
+            - python-certifi
+            - python-ndg-httpsclient
+            - libssl1.0.2
+            - python-cffi
+            - python-enum34
+            - python-idna
+            - python-ipaddress
+            - python-pyasn1
+            - ca-certificates
+
 before_script:
   - ls /home/travis/virtualenv/
 script:
   - py.test -vv
   - rm -rf requests/packages/urllib3
-  - pip install urllib3 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
+  - pip install --upgrade urllib3 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
   - py.test -vv
   - git checkout requests/packages/urllib3
   - pip install -e '.[security]'
