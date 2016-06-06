@@ -1,7 +1,14 @@
 language: python
 python:
   - 2.6
-  - 2.7
+  - 2.7.2
+  - 2.7.4
+  - 2.7.5
+  - 2.7.6
+  - 2.7.8
+  - 2.7.9
+  - 2.7.10
+  - 2.7.11
   - 3.3
   - 3.4
   - 3.5
@@ -14,6 +21,8 @@ matrix:
       env: DIST=trusty
       dist: trusty
       sudo: required
+before_script:
+  - ls /home/travis/virtualenv/
 script:
   - py.test -vv
   - rm -rf requests/packages/urllib3
@@ -22,6 +31,7 @@ script:
   - git checkout requests/packages/urllib3
   - pip install -e '.[security]'
   - rm -rf requests/packages/urllib3
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
   - py.test -vv
 notifications:
   email: false
