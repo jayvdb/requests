@@ -637,7 +637,7 @@ class TestRequests:
 
         print('HAS_MODERN_SSL', HAS_MODERN_SSL)
         print('HAS_PYOPENSSL', HAS_PYOPENSSL)
-        print('HAS_PYOPENSSL', HAS_SNI)
+        print('HAS_SNI', HAS_SNI)
 
         with warnings.catch_warnings(record=True) as warnings_log:
             response = requests.get('https://www.wikipedia.org')
