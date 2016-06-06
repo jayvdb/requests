@@ -46,15 +46,21 @@ before_script:
   - ls /home/travis/virtualenv/
 script:
   - py.test -vv
+  - py.test -vv -k "test_unbundling or test_verify"
+  - pip install --upgrade 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
+  - py.test -vv
+  - py.test -vv -k "test_unbundling or test_verify"
+  - py.test -vv -k "test_unbundling or test_verify" --import-urllib3 --inject-openssl
   - rm -rf requests/packages/urllib3
-  - pip install --upgrade urllib3 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
-  - py.test -vv -k test_verify
+  - pip install --upgrade urllib3
+  - py.test -vv -k "test_unbundling or test_verify"
+  - py.test -vv -k "test_unbundling or test_verify" --import-urllib3 --inject-openssl
   - git checkout requests/packages/urllib3
   - pip install -e '.[security]'
   - rm -rf requests/packages/urllib3
   - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
   - py.test -vv
-  - py.test -vv -k test_verify
+  - py.test -vv -k "test_unbundling or test_verify"
   - py.test -vv --import-urllib3 --inject-openssl
 notifications:
   email: false

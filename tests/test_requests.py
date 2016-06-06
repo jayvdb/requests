@@ -6,6 +6,7 @@
 from __future__ import division
 import json
 import os
+import sys
 import pickle
 import collections
 import contextlib
@@ -627,6 +628,72 @@ class TestRequests:
 
     def test_pyopenssl_redirect(self, httpbin_secure, httpbin_ca_bundle):
         requests.get(httpbin_secure('status', '301'), verify=httpbin_ca_bundle)
+
+    def test_unbundling(self):
+        """unbundled copy is identical."""
+        # TODO: skip if not unbundled
+        try:
+            import urllib3
+        except ImportError:
+            return
+
+        if urllib3 is not sys.modules['requests.packages.urllib3']:
+            return
+
+        assert id(urllib3) == id(sys.modules['requests.packages.urllib3'])
+
+        import urllib3.contrib.pyopenssl as u_c_pyopenssl
+        import urllib3.connection as u_connection
+        import urllib3.util as u_util
+
+        urllib3_data = {
+            'pyopenssl': {
+                'module': u_c_pyopenssl,
+                'id': id(u_c_pyopenssl),
+                'HAS_SNI': u_c_pyopenssl.HAS_SNI,
+                'orig_util_HAS_SNI': u_c_pyopenssl.orig_util_HAS_SNI,
+                'orig_connection_ssl_wrap_socket': u_c_pyopenssl.orig_connection_ssl_wrap_socket,
+                'ssl_wrap_socket': u_c_pyopenssl.ssl_wrap_socket,
+            },
+            'connection': {
+                'module': u_connection,
+                'id': id(u_connection),
+                'ssl_wrap_socket': u_connection.ssl_wrap_socket,
+            },
+            'util': {
+                'module': u_util,
+                'id': id(u_util),
+                'HAS_SNI': u_util.HAS_SNI,
+                'IS_PYOPENSSL': u_util.IS_PYOPENSSL,
+            },
+        }
+
+        import requests.packages.urllib3.contrib.pyopenssl as r_u_c_pyopenssl
+        import requests.packages.urllib3.connection as r_u_connection
+        import requests.packages.urllib3.util as r_u_util
+
+        requests_urllib3_data = {
+            'pyopenssl': {
+                'module': r_u_c_pyopenssl,
+                'id': id(r_u_c_pyopenssl),
+                'HAS_SNI': r_u_c_pyopenssl.HAS_SNI,
+                'orig_util_HAS_SNI': r_u_c_pyopenssl.orig_util_HAS_SNI,
+                'orig_connection_ssl_wrap_socket': r_u_c_pyopenssl.orig_connection_ssl_wrap_socket,
+                'ssl_wrap_socket': r_u_c_pyopenssl.ssl_wrap_socket,
+            },
+            'connection': {
+                'module': r_u_connection,
+                'id': id(r_u_connection),
+                'ssl_wrap_socket': r_u_connection.ssl_wrap_socket,
+            },
+            'util': {
+                'module': r_u_util,
+                'id': id(r_u_util),
+                'HAS_SNI': r_u_util.HAS_SNI,
+                'IS_PYOPENSSL': r_u_util.IS_PYOPENSSL,
+            },
+        }
+        assert urllib3_data == requests_urllib3_data
 
     def test_verify(self):
         """verify=True works with requests.get"""
