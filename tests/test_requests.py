@@ -51,6 +51,13 @@ try:
 except AttributeError:
     HAS_PYOPENSSL = False
 
+try:
+    from ndg.httpsclient.ssl_peer_verification import (
+        SUBJ_ALT_NAME_SUPPORT as HAS_SNI,
+    )
+except ImportError:
+    HAS_SNI = False
+
 
 class TestRequests:
 
@@ -626,8 +633,15 @@ class TestRequests:
         if HAS_MODERN_SSL or HAS_PYOPENSSL:
             warnings_expected = tuple()
         else:
-            warnings_expected = ('SNIMissingWarning',
-                                 'InsecurePlatformWarning')
+            if HAS_SNI:
+                warnings_expected = ('InsecurePlatformWarning', )
+            else:
+                warnings_expected = ('SNIMissingWarning',
+                                     'InsecurePlatformWarning')
+
+        print('HAS_MODERN_SSL', HAS_MODERN_SSL)
+        print('HAS_PYOPENSSL', HAS_PYOPENSSL)
+        print('HAS_PYOPENSSL', HAS_SNI)
 
         with warnings.catch_warnings(record=True) as warnings_log:
             response = requests.get('https://www.wikipedia.org')
