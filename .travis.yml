@@ -1,7 +1,11 @@
 language: python
 python:
   - 2.6
-  - 2.7
+  - 2.7.6
+  - 2.7.8
+  - 2.7.9
+  - 2.7.10
+  - 2.7.11
   - 3.3
   - 3.4
   - 3.5
@@ -9,12 +13,26 @@ python:
 matrix:
   include:
     - python: '2.7_with_system_site_packages'
-      env: DIST=precise
+      env: DIST=precise-py2.7.3
     - python: '2.7_with_system_site_packages'
-      env: DIST=trusty
+      env: DIST=trusty-py2.7.6
       dist: trusty
       sudo: required
+
 script:
-  - py.test -vv
+  - py.test -r w -vv
+  - py.test -r w -vv -k test_https_warnings
+
+  - pip install --upgrade pyasn1
+  - py.test -r w -vv -k test_https_warnings
+
+  - pip install --upgrade 'pyOpenSSL>=0.13'
+  - py.test -r w -vv -k test_https_warnings
+
+  - pip install --upgrade ndg-httpsclient
+  - py.test -r w -vv -k test_https_warnings
+
+  - py.test -r w -vv
+
 notifications:
   email: false
