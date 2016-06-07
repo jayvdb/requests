@@ -1,12 +1,17 @@
 language: python
 python:
   - 2.6
-  - 2.7
+  - 2.7.6
+  - 2.7.8
+  - 2.7.9
+  - 2.7.10
+  - 2.7.11
   - 3.3
   - 3.4
+no_python:
   - 3.5
   - nightly
-matrix:
+no_matrix:
   include:
     - python: '2.7_with_system_site_packages'
       env: DIST=precise
@@ -14,7 +19,26 @@ matrix:
       env: DIST=trusty
       dist: trusty
       sudo: required
+
 script:
   - py.test -vv
+  - py.test -vv -k test_https_warnings
+
+  - pip install --upgrade pyasn1
+  - py.test -vv -k test_https_warnings
+
+  - pip install --upgrade 'pyOpenSSL>=0.13'
+  - py.test -vv -k test_https_warnings
+
+  - pip install --upgrade ndg-httpsclient
+  - py.test -vv -k test_https_warnings
+
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
+  - rm -rf requests/packages/urllib3
+  - pip install --upgrade urllib3
+  - py.test -vv -k test_https_warnings
+
+  - py.test -vv
+
 notifications:
   email: false
