@@ -33,12 +33,6 @@ from requests.hooks import default_hooks
 from .compat import StringIO, u
 from .utils import override_environ
 
-from requests.packages.urllib3.exceptions import SNIMissingWarning
-
-# urllib3 sets this to only go off once, but we need it to
-# always fire for test_https_warnings to work
-warnings.simplefilter('always', SNIMissingWarning)
-
 # Requests to this URL should always fail with a connection timeout (nothing
 # listening on that port)
 TARPIT = 'http://10.255.255.1'
