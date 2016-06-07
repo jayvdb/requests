@@ -32,6 +32,15 @@ script:
   - pip install --upgrade ndg-httpsclient
   - py.test -vv -k test_https_warnings
 
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
+  - rm -rf requests/packages/urllib3
+  - pip install --upgrade urllib3
+  - py.test -vv -k test_https_warnings
+
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
+  - ln -s $(python -c "import os.path, urllib3; print(os.path.dirname(urllib3.__file__))") requests/packages/urllib3
+  - py.test -vv -k test_https_warnings
+
   - py.test -vv
 
 notifications:
