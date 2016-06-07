@@ -1,35 +1,67 @@
 language: python
 python:
-  - 2.6
-  - 2.7.6
-  - 2.7.8
   - 2.7.9
-  - 2.7.10
-  - 2.7.11
+  - 2.7.8
+  - 2.7.6
+  - 2.6
   - 3.3
   - 3.4
   - 3.5
   - nightly
+matrix:
+  include:
+    - python: '2.7_with_system_site_packages'
+      env: DIST=precise
+    - python: '2.7_with_system_site_packages'
+      env: DIST=trusty
+      dist: trusty
+      sudo: required
+    - language: python
+      python: '2.7_with_system_site_packages'
+      env: DIST=trusty+sid
+      dist: trusty
+      sudo: required
+      addons:
+        apt:
+          sources:
+            - debian-sid
+          packages:
+            - python-ipaddr
+            - python-openssl=0.13-2ubuntu6
+            - python-requests
+            - python-six
+            - python-certifi
+            - python-ndg-httpsclient
+            - libssl1.0.2
+            - python-cffi
+            - python-enum34
+            - python-idna
+            - python-ipaddress
+            - python-pyasn1
+            - ca-certificates
 
 script:
   - py.test -vv
   - py.test -vv -k test_https_warnings
 
-  - pip install --upgrade ndg-httpsclient pyasn1
-
-  - py.test -vv -k test_https_warnings
-
-  - pip install --upgrade ndg-httpsclient 'cryptography==1.3.3'
-
-  - py.test -vv -k test_https_warnings
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
 
   - pip install --upgrade ndg-httpsclient pyasn1 'cryptography>=1.3.4'
 
-  - py.test -vv -k test_https_warnings
-
   - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
 
+  - py.test -vv -k "test_https_warnings"
+
   - pip install --upgrade 'pyOpenSSL>=0.13' ndg-httpsclient pyasn1
+
+  - py.test -vv
+
+  - py.test -vv -k test_https_warnings
+
+  - rm -rf requests/packages/urllib3
+  - pip install --upgrade urllib3
+
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
 
   - py.test -vv
   - py.test -vv -k test_https_warnings
