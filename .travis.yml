@@ -6,15 +6,13 @@ python:
   - 3.4
   - 3.5
   - nightly
-matrix:
-  include:
-    - python: '2.7_with_system_site_packages'
-      env: DIST=precise
-    - python: '2.7_with_system_site_packages'
-      env: DIST=trusty
-      dist: trusty
-      sudo: required
 script:
   - py.test -vv
+
+  - find . -name '*.pyc' -o -name '__pycache__' | xargs rm -rf
+  - rm -rf requests/packages/urllib3
+  - pip install --upgrade urllib3
+  - py.test -vv -k test_https_warnings
+
 notifications:
   email: false
